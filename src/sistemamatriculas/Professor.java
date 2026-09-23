@@ -16,8 +16,13 @@ public class Professor extends Usuario {
 
     /** Lista os alunos matriculados em uma disciplina lecionada por este professor. */
     public List<Aluno> listarAlunos(Disciplina disciplina) {
-        // TODO: implementar na Sprint 3
-        return new ArrayList<>();
+        List<Aluno> alunos = new ArrayList<>();
+        if (disciplina != null && disciplinas.contains(disciplina)) {
+            for (Matricula m : disciplina.getMatriculas()) {
+                alunos.add(m.getAluno());
+            }
+        }
+        return alunos;
     }
 
     public List<Disciplina> getDisciplinas() {

@@ -21,7 +21,8 @@ public class Matricula {
 
     /** Desfaz esta matrícula, liberando a vaga na disciplina (RF07). */
     public void cancelar() {
-        // TODO: implementar na Sprint 3
+        aluno.getMatriculas().remove(this);
+        disciplina.getMatriculas().remove(this);
     }
 
     public Aluno getAluno() {

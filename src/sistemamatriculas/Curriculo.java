@@ -23,8 +23,13 @@ public class Curriculo {
 
     /** Matrículas e cancelamentos só são permitidos com o período aberto (RF08, RN05). */
     public boolean periodoAberto() {
-        // TODO: implementar na Sprint 3
-        return false;
+        LocalDate hoje = LocalDate.now();
+        return !hoje.isBefore(inicioMatriculas) && !hoje.isAfter(fimMatriculas);
+    }
+
+    /** Antecipa o fim do período para "ontem", encerrando as matrículas (RF10). */
+    void encerrarAgora() {
+        this.fimMatriculas = LocalDate.now().minusDays(1);
     }
 
     public String getSemestre() {

@@ -24,25 +24,34 @@ public class Disciplina {
         this.nome = nome;
         this.creditos = creditos;
         this.professor = professor;
+        if (professor != null && !professor.getDisciplinas().contains(this)) {
+            professor.getDisciplinas().add(this);
+        }
     }
 
     /** Há vaga enquanto o número de matriculados for menor que MAX_ALUNOS (RF09). */
     public boolean temVaga() {
-        // TODO: implementar na Sprint 3
-        return false;
+        return qtdMatriculados() < MAX_ALUNOS;
     }
 
     public int qtdMatriculados() {
-        // TODO: implementar na Sprint 3
-        return 0;
+        return matriculas.size();
     }
 
     /**
      * Ao final do período: ativa a disciplina se tiver pelo menos MIN_ALUNOS
-     * matriculados; caso contrário, cancela (RF10, RN03).
+     * matriculados; caso contrário, cancela a disciplina e desfaz suas
+     * matrículas (RF10, RN03).
      */
     public void verificarAtivacao() {
-        // TODO: implementar na Sprint 3
+        if (qtdMatriculados() >= MIN_ALUNOS) {
+            ativa = true;
+        } else {
+            ativa = false;
+            for (Matricula m : new ArrayList<>(matriculas)) {
+                m.cancelar();
+            }
+        }
     }
 
     public String getCodigo() {
@@ -59,6 +68,10 @@ public class Disciplina {
 
     public boolean isAtiva() {
         return ativa;
+    }
+
+    void setAtiva(boolean ativa) {
+        this.ativa = ativa; // usado pelo RepositorioDados ao carregar
     }
 
     public Professor getProfessor() {

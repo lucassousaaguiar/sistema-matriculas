@@ -20,6 +20,7 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
   - [Diagrama de classes](#diagrama-de-classes)
   - [Estrutura do projeto Java](#estrutura-do-projeto-java)
   - [Como compilar e executar](#como-compilar-e-executar)
+- [Protótipo (Lab01S03)](#protótipo-lab01s03)
 - [Tecnologias previstas](#tecnologias-previstas)
 
 ## Status das sprints
@@ -35,10 +36,10 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 - [x] Diagrama de classes ([`docs/diagrama-classes-v1.svg`](docs/diagrama-classes-v1.svg))
 - [x] Projeto Java com classes, atributos e stubs dos métodos (`src/sistemamatriculas/`) — compila com JDK 17+
 
-### ⏳ Lab01S03 — Protótipo (7 pontos)
-- [ ] Correção dos diagramas conforme feedback
-- [ ] Implementação das principais funcionalidades (interface em linha de comando)
-- [ ] Persistência em arquivos
+### ✅ Lab01S03 — Protótipo (7 pontos)
+- [x] Correção dos diagramas: diagrama de classes evoluiu para a **v2** ([`docs/diagrama-classes-v2.svg`](docs/diagrama-classes-v2.svg)); a v1 foi mantida como histórico
+- [x] Implementação das principais funcionalidades com interface em linha de comando (login, menus por papel, matrícula/cancelamento com as regras de negócio, encerramento do período, notificação de cobranças)
+- [x] Persistência em arquivos CSV (`dados/`)
 
 ---
 
@@ -147,7 +148,15 @@ O ator **Usuário** é o ator geral ("pai"): **Aluno**, **Professor** e **Secret
 
 ## Diagrama de classes
 
-![Diagrama de classes — Sistema de Matrículas](docs/diagrama-classes-v1.svg)
+Versão atual (**v2**, atualizada na Sprint 3 conforme a implementação — a [v1](docs/diagrama-classes-v1.svg) da Sprint 2 foi mantida no repositório como histórico):
+
+![Diagrama de classes — Sistema de Matrículas](docs/diagrama-classes-v2.svg)
+
+O que mudou da v1 para a v2 (correção dos diagramas, Lab01S03):
+- As operações administrativas saíram de `Secretaria` (que ficou apenas como papel de acesso) e foram para a fachada **`SistemaMatriculas`**, que ganhou os métodos de cadastro, geração de currículo e inicialização — na prática, todos os menus da CLI operam sobre a fachada.
+- Entrou **`CobrancasArquivo`**, a realização da interface `SistemaCobrancas` que simula o sistema externo gravando em `dados/cobrancas.log`.
+- Entrou **`Main`** («CLI»), que usa a fachada.
+- `RepositorioDados` passou a receber o sistema por parâmetro em `salvar`/`carregar`; `Aluno` ganhou as constantes dos limites (4 obrigatórias / 2 optativas).
 
 Decisões de modelagem:
 
@@ -161,14 +170,16 @@ Decisões de modelagem:
 
 ```
 sistema-matriculas/
+├── dados/                           # criada na 1ª execução (CSVs + cobrancas.log)
 ├── docs/
 │   ├── diagrama-casos-de-uso-v1.svg
-│   └── diagrama-classes-v1.svg
+│   ├── diagrama-classes-v1.svg      # versão da Sprint 2 (stubs)
+│   └── diagrama-classes-v2.svg      # versão atual (Sprint 3)
 ├── src/
 │   └── sistemamatriculas/
-│       ├── Main.java                # ponto de entrada (CLI na Sprint 3)
-│       ├── SistemaMatriculas.java   # fachada: login, matricular, cancelar, encerrar período
-│       ├── Usuario.java             # abstrata
+│       ├── Main.java                # interface de linha de comando (menus por papel)
+│       ├── SistemaMatriculas.java   # fachada: login, matrículas, cadastros, currículo
+│       ├── Usuario.java             # abstrata (login + hash SHA-256 da senha)
 │       ├── Aluno.java
 │       ├── Professor.java
 │       ├── Secretaria.java
@@ -178,11 +189,10 @@ sistema-matriculas/
 │       ├── Matricula.java
 │       ├── TipoMatricula.java       # enum OBRIGATORIA/OPTATIVA
 │       ├── SistemaCobrancas.java    # interface (sistema externo)
-│       └── RepositorioDados.java    # persistência em arquivos
+│       ├── CobrancasArquivo.java    # implementação: registra em dados/cobrancas.log
+│       └── RepositorioDados.java    # persistência em arquivos CSV
 └── README.md
 ```
-
-Os corpos dos métodos estão como *stubs* (`// TODO: implementar na Sprint 3`), conforme pedido na S02.
 
 ## Como compilar e executar
 
@@ -192,6 +202,30 @@ Pré-requisito: **JDK 17+**.
 javac -d bin src/sistemamatriculas/*.java
 java -cp bin sistemamatriculas.Main
 ```
+
+Na primeira execução o sistema cria a pasta `dados/` com usuários e um currículo de exemplo (período de matrículas aberto). Usuários de teste:
+
+| Papel | Login | Senha |
+|---|---|---|
+| Secretaria | `secretaria` | `admin123` |
+| Professor | `mrezende` / `cassia` | `prof123` |
+| Aluno | `lucas` / `maria` / `joao` | `aluno123` |
+
+> A saída do console usa texto sem acentos, para exibir corretamente em qualquer terminal do Windows. Para recomeçar do zero, apague a pasta `dados/`.
+
+# Protótipo (Lab01S03)
+
+Funcionalidades implementadas (todas usáveis pela CLI):
+
+| Papel | Funcionalidades |
+|---|---|
+| Todos | Login com senha (hash SHA-256) e menu conforme o papel (RF01, RNF04, RNF05) |
+| Aluno | Ver disciplinas ofertadas com vagas; matricular em obrigatórias/optativas respeitando os limites 4+2 (RN02), a lotação de 60 (RN04) e o período (RN05); cancelar matrícula; ver suas matrículas (RF06-RF09, RF13) |
+| Professor | Listar suas disciplinas e os alunos matriculados em cada uma (RF12) |
+| Secretaria | Manter disciplinas, professores e alunos (RF02-RF04); gerar o currículo do semestre com período de matrículas (RF05); encerrar o período — disciplinas com ≥ 3 alunos ficam ativas, as demais são canceladas e têm as matrículas desfeitas (RF10, RN03) |
+| Sistema de cobranças | Notificado a cada matrícula efetivada, com registro em `dados/cobrancas.log` (RF11, RN06) |
+
+Persistência: todo o estado (usuários, cursos, disciplinas, currículo e matrículas) é gravado em CSV na pasta `dados/` a cada operação e recarregado na abertura (RNF03).
 
 ## Tecnologias previstas
 
