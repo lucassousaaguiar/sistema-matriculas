@@ -36,6 +36,12 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 - [x] Diagrama de classes ([`docs/diagrama-classes-v1.svg`](docs/diagrama-classes-v1.svg))
 - [x] Projeto Java com classes, atributos e stubs dos métodos (`src/sistemamatriculas/`) — compila com JDK 17+
 
+### 🔄 Atualização pós-S03 — Turmas e histórico (novos requisitos do PO)
+- [x] Registro de mudança com todas as alterações necessárias → [`docs/mudanca-turmas.md`](docs/mudanca-turmas.md)
+- [ ] Validação das decisões propostas com o PO
+- [ ] Diagramas atualizados (casos de uso v2, classes v3)
+- [ ] Implementação (classe Turma, histórico do aluno, ajustes na CLI e na persistência)
+
 ### ✅ Lab01S03 — Protótipo (7 pontos)
 - [x] Correção dos diagramas: diagrama de classes evoluiu para a **v2** ([`docs/diagrama-classes-v2.svg`](docs/diagrama-classes-v2.svg)); a v1 foi mantida como histórico
 - [x] Implementação das principais funcionalidades com interface em linha de comando (login, menus por papel, matrícula/cancelamento com as regras de negócio, encerramento do período, notificação de cobranças)
