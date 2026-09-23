@@ -16,6 +16,10 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
   - [Regras de negócio](#regras-de-negócio)
   - [Diagrama de casos de uso](#diagrama-de-casos-de-uso)
   - [Histórias de usuário](#histórias-de-usuário)
+- [Projeto estrutural (Lab01S02)](#projeto-estrutural-lab01s02)
+  - [Diagrama de classes](#diagrama-de-classes)
+  - [Estrutura do projeto Java](#estrutura-do-projeto-java)
+  - [Como compilar e executar](#como-compilar-e-executar)
 - [Tecnologias previstas](#tecnologias-previstas)
 
 ## Status das sprints
@@ -26,10 +30,10 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 - [x] Histórias de usuário em Markdown (neste README)
 - [ ] URL do repositório enviada no Canvas
 
-### ⏳ Lab01S02 — Projeto estrutural (4 pontos)
-- [ ] Correção dos diagramas conforme feedback
-- [ ] Diagrama de classes
-- [ ] Projeto Java com classes, atributos e stubs dos métodos
+### ✅ Lab01S02 — Projeto estrutural (4 pontos)
+- [x] Revisão dos diagramas (HU09 alinhada à especificação; multiplicidades e tipos completados no diagrama de classes)
+- [x] Diagrama de classes ([`docs/diagrama-classes-v1.svg`](docs/diagrama-classes-v1.svg))
+- [x] Projeto Java com classes, atributos e stubs dos métodos (`src/sistemamatriculas/`) — compila com JDK 17+
 
 ### ⏳ Lab01S03 — Protótipo (7 pontos)
 - [ ] Correção dos diagramas conforme feedback
@@ -137,7 +141,57 @@ O ator **Usuário** é o ator geral ("pai"): **Aluno**, **Professor** e **Secret
 *Critérios de aceite:* após o encerramento, disciplinas com menos de 3 matriculados ficam canceladas e novas matrículas são bloqueadas.
 
 **HU09** — Como **sistema de cobranças** (sistema externo), quero ser notificado a cada matrícula efetivada, para cobrar o aluno pelas disciplinas do semestre.
-*Critérios de aceite:* toda matrícula confirmada gera uma notificação com aluno e disciplinas; cancelamentos também são comunicados.
+*Critérios de aceite:* toda matrícula confirmada gera uma notificação com o aluno e as disciplinas do semestre (conforme especificação do PO).
+
+# Projeto estrutural (Lab01S02)
+
+## Diagrama de classes
+
+![Diagrama de classes — Sistema de Matrículas](docs/diagrama-classes-v1.svg)
+
+Decisões de modelagem:
+
+- **`Usuario`** é abstrata e concentra login/senha e `autenticar()` (RF01, RNF04); `Aluno`, `Professor` e `Secretaria` herdam dela — espelhando a generalização de atores do diagrama de casos de uso.
+- **`Matricula`** liga `Aluno` (1 — 0..6, os 4 obrigatórias + 2 optativas da RN02) a `Disciplina` (1 — 0..60, RN04), com o enum **`TipoMatricula`**.
+- **`Disciplina`** guarda as regras de lotação como constantes (`MAX_ALUNOS = 60`, `MIN_ALUNOS = 3`) e o método `verificarAtivacao()` aplica a RN03 no encerramento do período.
+- **`Curriculo`** representa o que a secretaria gera por semestre: disciplinas ofertadas + período de matrículas (`periodoAberto()` sustenta RF08/RN05).
+- **`SistemaMatriculas`** é a fachada que a interface de linha de comando usará, com dependências «use» para a interface **`SistemaCobrancas`** (sistema externo, RF11) e para **`RepositorioDados`** (persistência em arquivos, RNF03).
+
+## Estrutura do projeto Java
+
+```
+sistema-matriculas/
+├── docs/
+│   ├── diagrama-casos-de-uso-v1.svg
+│   └── diagrama-classes-v1.svg
+├── src/
+│   └── sistemamatriculas/
+│       ├── Main.java                # ponto de entrada (CLI na Sprint 3)
+│       ├── SistemaMatriculas.java   # fachada: login, matricular, cancelar, encerrar período
+│       ├── Usuario.java             # abstrata
+│       ├── Aluno.java
+│       ├── Professor.java
+│       ├── Secretaria.java
+│       ├── Curso.java
+│       ├── Disciplina.java
+│       ├── Curriculo.java
+│       ├── Matricula.java
+│       ├── TipoMatricula.java       # enum OBRIGATORIA/OPTATIVA
+│       ├── SistemaCobrancas.java    # interface (sistema externo)
+│       └── RepositorioDados.java    # persistência em arquivos
+└── README.md
+```
+
+Os corpos dos métodos estão como *stubs* (`// TODO: implementar na Sprint 3`), conforme pedido na S02.
+
+## Como compilar e executar
+
+Pré-requisito: **JDK 17+**.
+
+```bash
+javac -d bin src/sistemamatriculas/*.java
+java -cp bin sistemamatriculas.Main
+```
 
 ## Tecnologias previstas
 
