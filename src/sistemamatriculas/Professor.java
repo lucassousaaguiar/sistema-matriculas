@@ -4,28 +4,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Professor: consulta os alunos matriculados nas disciplinas que leciona (RF12).
+ * Professor: leciona turmas e consulta os alunos matriculados em cada uma
+ * de suas turmas (RF12).
  */
 public class Professor extends Usuario {
 
-    private List<Disciplina> disciplinas = new ArrayList<>();
+    private List<Turma> turmas = new ArrayList<>();
 
     public Professor(String login, String senhaHash, String nome) {
         super(login, senhaHash, nome);
     }
 
-    /** Lista os alunos matriculados em uma disciplina lecionada por este professor. */
-    public List<Aluno> listarAlunos(Disciplina disciplina) {
+    /** Lista os alunos matriculados em uma turma lecionada por este professor. */
+    public List<Aluno> listarAlunos(Turma turma) {
         List<Aluno> alunos = new ArrayList<>();
-        if (disciplina != null && disciplinas.contains(disciplina)) {
-            for (Matricula m : disciplina.getMatriculas()) {
+        if (turma != null && turmas.contains(turma)) {
+            for (Matricula m : turma.getMatriculas()) {
                 alunos.add(m.getAluno());
             }
         }
         return alunos;
     }
 
-    public List<Disciplina> getDisciplinas() {
-        return disciplinas;
+    public List<Turma> getTurmas() {
+        return turmas;
     }
 }

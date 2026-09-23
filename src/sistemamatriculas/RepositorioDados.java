@@ -10,7 +10,8 @@ import java.util.List;
 
 /**
  * Persistência dos dados do sistema em arquivos CSV (RNF03), na pasta dados/:
- * usuarios.csv, cursos.csv, disciplinas.csv, curriculo.csv e matriculas.csv.
+ * usuarios.csv, cursos.csv, disciplinas.csv, turmas.csv, curriculo.csv,
+ * matriculas.csv e historico.csv.
  */
 public class RepositorioDados {
 
@@ -34,6 +35,20 @@ public class RepositorioDados {
             }
             Files.write(PASTA.resolve("usuarios.csv"), usuarios, StandardCharsets.UTF_8);
 
+            List<String> disciplinas = new ArrayList<>();
+            for (Disciplina d : s.getDisciplinas()) {
+                disciplinas.add(String.join(SEP, d.getCodigo(), d.getNome(), String.valueOf(d.getCreditos())));
+            }
+            Files.write(PASTA.resolve("disciplinas.csv"), disciplinas, StandardCharsets.UTF_8);
+
+            List<String> turmas = new ArrayList<>();
+            for (Turma t : s.getTurmas()) {
+                String prof = t.getProfessor() == null ? "" : t.getProfessor().getLogin();
+                turmas.add(String.join(SEP, t.getDisciplina().getCodigo(), t.getCodigo(),
+                        prof, String.valueOf(t.isAtiva())));
+            }
+            Files.write(PASTA.resolve("turmas.csv"), turmas, StandardCharsets.UTF_8);
+
             List<String> cursos = new ArrayList<>();
             for (Curso c : s.getCursos()) {
                 List<String> codigos = new ArrayList<>();
@@ -44,23 +59,15 @@ public class RepositorioDados {
             }
             Files.write(PASTA.resolve("cursos.csv"), cursos, StandardCharsets.UTF_8);
 
-            List<String> disciplinas = new ArrayList<>();
-            for (Disciplina d : s.getDisciplinas()) {
-                String prof = d.getProfessor() == null ? "" : d.getProfessor().getLogin();
-                disciplinas.add(String.join(SEP, d.getCodigo(), d.getNome(),
-                        String.valueOf(d.getCreditos()), String.valueOf(d.isAtiva()), prof));
-            }
-            Files.write(PASTA.resolve("disciplinas.csv"), disciplinas, StandardCharsets.UTF_8);
-
             List<String> curriculo = new ArrayList<>();
             Curriculo c = s.getCurriculoAtual();
             if (c != null) {
-                List<String> codigos = new ArrayList<>();
-                for (Disciplina d : c.getDisciplinas()) {
-                    codigos.add(d.getCodigo());
+                List<String> ids = new ArrayList<>();
+                for (Turma t : c.getTurmas()) {
+                    ids.add(t.getDisciplina().getCodigo() + ":" + t.getCodigo());
                 }
                 curriculo.add(String.join(SEP, c.getSemestre(), c.getInicioMatriculas().toString(),
-                        c.getFimMatriculas().toString(), String.join(",", codigos)));
+                        c.getFimMatriculas().toString(), String.join(",", ids)));
             }
             Files.write(PASTA.resolve("curriculo.csv"), curriculo, StandardCharsets.UTF_8);
 
@@ -68,10 +75,19 @@ public class RepositorioDados {
             for (Aluno a : s.getAlunos()) {
                 for (Matricula m : a.getMatriculas()) {
                     matriculas.add(String.join(SEP, a.getLogin(), m.getDisciplina().getCodigo(),
-                            m.getTipo().name(), m.getData().toString()));
+                            m.getTurma().getCodigo(), m.getTipo().name(), m.getData().toString()));
                 }
             }
             Files.write(PASTA.resolve("matriculas.csv"), matriculas, StandardCharsets.UTF_8);
+
+            List<String> historico = new ArrayList<>();
+            for (Aluno a : s.getAlunos()) {
+                for (ItemHistorico h : a.getHistorico()) {
+                    historico.add(String.join(SEP, a.getLogin(), h.getDisciplina().getCodigo(),
+                            h.getTurma(), h.getSemestre()));
+                }
+            }
+            Files.write(PASTA.resolve("historico.csv"), historico, StandardCharsets.UTF_8);
         } catch (IOException e) {
             System.out.println("[Erro] Falha ao salvar dados: " + e.getMessage());
         }
@@ -101,13 +117,26 @@ public class RepositorioDados {
             if (Files.exists(disciplinas)) {
                 for (String linha : Files.readAllLines(disciplinas, StandardCharsets.UTF_8)) {
                     String[] c = linha.split(SEP, -1);
-                    if (c.length < 5) {
+                    if (c.length < 3) {
                         continue;
                     }
-                    Professor prof = s.buscarProfessor(c[4]);
-                    Disciplina d = new Disciplina(c[0], c[1], Integer.parseInt(c[2]), prof);
-                    d.setAtiva(Boolean.parseBoolean(c[3]));
-                    s.getDisciplinas().add(d);
+                    s.getDisciplinas().add(new Disciplina(c[0], c[1], Integer.parseInt(c[2])));
+                }
+            }
+
+            Path turmas = PASTA.resolve("turmas.csv");
+            if (Files.exists(turmas)) {
+                for (String linha : Files.readAllLines(turmas, StandardCharsets.UTF_8)) {
+                    String[] c = linha.split(SEP, -1);
+                    if (c.length < 4) {
+                        continue;
+                    }
+                    Disciplina d = s.buscarDisciplina(c[0]);
+                    if (d == null) {
+                        continue;
+                    }
+                    Turma t = new Turma(c[1], d, s.buscarProfessor(c[2]));
+                    t.setAtiva(Boolean.parseBoolean(c[3]));
                 }
             }
 
@@ -137,10 +166,13 @@ public class RepositorioDados {
                         continue;
                     }
                     Curriculo cur = new Curriculo(c[0], LocalDate.parse(c[1]), LocalDate.parse(c[2]));
-                    for (String codigo : c[3].split(",")) {
-                        Disciplina d = s.buscarDisciplina(codigo);
-                        if (d != null) {
-                            cur.getDisciplinas().add(d);
+                    for (String id : c[3].split(",")) {
+                        String[] partes = id.split(":");
+                        if (partes.length == 2) {
+                            Turma t = s.buscarTurma(partes[0], partes[1]);
+                            if (t != null) {
+                                cur.getTurmas().add(t);
+                            }
                         }
                     }
                     s.setCurriculoAtual(cur);
@@ -151,15 +183,30 @@ public class RepositorioDados {
             if (Files.exists(matriculas)) {
                 for (String linha : Files.readAllLines(matriculas, StandardCharsets.UTF_8)) {
                     String[] c = linha.split(SEP, -1);
+                    if (c.length < 5) {
+                        continue;
+                    }
+                    Aluno a = s.buscarAluno(c[0]);
+                    Turma t = s.buscarTurma(c[1], c[2]);
+                    if (a != null && t != null) {
+                        Matricula m = new Matricula(a, t, TipoMatricula.valueOf(c[3]), LocalDate.parse(c[4]));
+                        a.getMatriculas().add(m);
+                        t.getMatriculas().add(m);
+                    }
+                }
+            }
+
+            Path historico = PASTA.resolve("historico.csv");
+            if (Files.exists(historico)) {
+                for (String linha : Files.readAllLines(historico, StandardCharsets.UTF_8)) {
+                    String[] c = linha.split(SEP, -1);
                     if (c.length < 4) {
                         continue;
                     }
                     Aluno a = s.buscarAluno(c[0]);
                     Disciplina d = s.buscarDisciplina(c[1]);
                     if (a != null && d != null) {
-                        Matricula m = new Matricula(a, d, TipoMatricula.valueOf(c[2]), LocalDate.parse(c[3]));
-                        a.getMatriculas().add(m);
-                        d.getMatriculas().add(m);
+                        a.getHistorico().add(new ItemHistorico(d, c[2], c[3]));
                     }
                 }
             }

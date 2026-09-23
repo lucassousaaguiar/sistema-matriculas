@@ -3,34 +3,39 @@ package sistemamatriculas;
 import java.time.LocalDate;
 
 /**
- * Matrícula de um aluno em uma disciplina, como obrigatória ou optativa (RN02).
+ * Matrícula de um aluno em uma turma, como obrigatória ou optativa (RN02).
+ * A disciplina é obtida através da turma.
  */
 public class Matricula {
 
     private Aluno aluno;
-    private Disciplina disciplina;
+    private Turma turma;
     private TipoMatricula tipo;
     private LocalDate data;
 
-    public Matricula(Aluno aluno, Disciplina disciplina, TipoMatricula tipo, LocalDate data) {
+    public Matricula(Aluno aluno, Turma turma, TipoMatricula tipo, LocalDate data) {
         this.aluno = aluno;
-        this.disciplina = disciplina;
+        this.turma = turma;
         this.tipo = tipo;
         this.data = data;
     }
 
-    /** Desfaz esta matrícula, liberando a vaga na disciplina (RF07). */
+    /** Desfaz esta matrícula, liberando a vaga na turma (RF07). */
     public void cancelar() {
         aluno.getMatriculas().remove(this);
-        disciplina.getMatriculas().remove(this);
+        turma.getMatriculas().remove(this);
     }
 
     public Aluno getAluno() {
         return aluno;
     }
 
+    public Turma getTurma() {
+        return turma;
+    }
+
     public Disciplina getDisciplina() {
-        return disciplina;
+        return turma.getDisciplina();
     }
 
     public TipoMatricula getTipo() {

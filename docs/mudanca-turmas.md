@@ -1,7 +1,7 @@
 # Registro de mudança — Introdução de Turmas e Histórico do Aluno
 
 > Sistema de Matrículas · Lab02 · 23/09/2026
-> Status: **em validação** (implementação após aprovação)
+> Status: **validado com o PO e implementado** (decisões da seção 7 aprovadas como propostas em 23/09/2026)
 
 ## 1. Novos requisitos do Product Owner (professor)
 

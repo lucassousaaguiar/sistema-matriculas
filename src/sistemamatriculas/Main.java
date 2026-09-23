@@ -50,16 +50,18 @@ public class Main {
         while (true) {
             System.out.println();
             System.out.println("--- MENU DO ALUNO ---");
-            System.out.println("1. Ver disciplinas ofertadas");
-            System.out.println("2. Matricular em disciplina");
+            System.out.println("1. Ver turmas ofertadas");
+            System.out.println("2. Matricular em turma");
             System.out.println("3. Cancelar matricula");
             System.out.println("4. Minhas matriculas");
+            System.out.println("5. Meu historico");
             System.out.println("0. Sair (logout)");
             switch (ler("Opcao: ")) {
                 case "1" -> listarOfertadas();
                 case "2" -> matricular(aluno);
                 case "3" -> cancelar(aluno);
                 case "4" -> minhasMatriculas(aluno);
+                case "5" -> meuHistorico(aluno);
                 case "0" -> {
                     return;
                 }
@@ -77,39 +79,40 @@ public class Main {
         System.out.printf("Curriculo %s | matriculas de %s a %s | periodo %s%n",
                 c.getSemestre(), c.getInicioMatriculas(), c.getFimMatriculas(),
                 c.periodoAberto() ? "ABERTO" : "ENCERRADO");
-        for (Disciplina d : c.getDisciplinas()) {
-            System.out.printf("  %-7s %-35s %d creditos | prof. %-16s | %2d/%d matriculados%s%n",
-                    d.getCodigo(), d.getNome(), d.getCreditos(),
-                    d.getProfessor() == null ? "-" : d.getProfessor().getNome(),
-                    d.qtdMatriculados(), Disciplina.MAX_ALUNOS,
-                    c.periodoAberto() ? "" : (d.isAtiva() ? " [ATIVA]" : " [CANCELADA]"));
+        for (Turma t : c.getTurmas()) {
+            System.out.printf("  %-10s %-33s %d creditos | prof. %-16s | %2d/%d matriculados%s%n",
+                    t.getIdentificacao(), t.getDisciplina().getNome(), t.getDisciplina().getCreditos(),
+                    t.getProfessor() == null ? "-" : t.getProfessor().getNome(),
+                    t.qtdMatriculados(), Turma.MAX_ALUNOS,
+                    c.periodoAberto() ? "" : (t.isAtiva() ? " [ATIVA]" : " [CANCELADA]"));
         }
     }
 
     private static void matricular(Aluno aluno) {
-        Disciplina d = pedirDisciplina();
-        if (d == null) {
+        Turma t = pedirTurma();
+        if (t == null) {
             return;
         }
-        String t = ler("Tipo - (O)brigatoria ou o(P)tativa: ").trim().toUpperCase();
-        TipoMatricula tipo = t.startsWith("P") ? TipoMatricula.OPTATIVA : TipoMatricula.OBRIGATORIA;
-        if (sistema.matricular(aluno, d, tipo)) {
-            System.out.println("Matricula realizada em " + d.getCodigo() + " como " + tipo + ".");
+        String tipoTxt = ler("Tipo - (O)brigatoria ou o(P)tativa: ").trim().toUpperCase();
+        TipoMatricula tipo = tipoTxt.startsWith("P") ? TipoMatricula.OPTATIVA : TipoMatricula.OBRIGATORIA;
+        if (sistema.matricular(aluno, t, tipo)) {
+            System.out.println("Matricula realizada em " + t.getIdentificacao() + " como " + tipo + ".");
         } else {
-            System.out.println("Nao foi possivel matricular. Verifique: periodo aberto, "
-                    + "limites (4 obrigatorias / 2 optativas), vagas e matricula duplicada.");
+            System.out.println("Nao foi possivel matricular. Verifique: periodo aberto, limites "
+                    + "(4 obrigatorias / 2 optativas), vagas da turma e se ja ha matricula em "
+                    + "outra turma desta disciplina.");
         }
     }
 
     private static void cancelar(Aluno aluno) {
-        Disciplina d = pedirDisciplina();
-        if (d == null) {
+        Turma t = pedirTurma();
+        if (t == null) {
             return;
         }
-        if (sistema.cancelarMatricula(aluno, d)) {
-            System.out.println("Matricula em " + d.getCodigo() + " cancelada.");
+        if (sistema.cancelarMatricula(aluno, t)) {
+            System.out.println("Matricula em " + t.getIdentificacao() + " cancelada.");
         } else {
-            System.out.println("Nao foi possivel cancelar (sem matricula nessa disciplina ou periodo encerrado).");
+            System.out.println("Nao foi possivel cancelar (sem matricula nessa turma ou periodo encerrado).");
         }
     }
 
@@ -122,8 +125,20 @@ public class Main {
                 aluno.contarPorTipo(TipoMatricula.OBRIGATORIA), Aluno.MAX_OBRIGATORIAS,
                 aluno.contarPorTipo(TipoMatricula.OPTATIVA), Aluno.MAX_OPTATIVAS);
         for (Matricula m : aluno.getMatriculas()) {
-            System.out.printf("  %-7s %-35s %-12s em %s%n", m.getDisciplina().getCodigo(),
+            System.out.printf("  %-10s %-33s %-12s em %s%n", m.getTurma().getIdentificacao(),
                     m.getDisciplina().getNome(), m.getTipo(), m.getData());
+        }
+    }
+
+    private static void meuHistorico(Aluno aluno) {
+        if (aluno.getHistorico().isEmpty()) {
+            System.out.println("Historico vazio (nenhuma disciplina cursada ainda).");
+            return;
+        }
+        System.out.println("Semestre | Disciplina                          | Turma");
+        for (ItemHistorico h : aluno.getHistorico()) {
+            System.out.printf("  %-7s | %-7s %-27s | %s%n", h.getSemestre(),
+                    h.getDisciplina().getCodigo(), h.getDisciplina().getNome(), h.getTurma());
         }
     }
 
@@ -133,28 +148,30 @@ public class Main {
         while (true) {
             System.out.println();
             System.out.println("--- MENU DO PROFESSOR ---");
-            System.out.println("1. Minhas disciplinas");
-            System.out.println("2. Alunos matriculados em uma disciplina");
+            System.out.println("1. Minhas turmas");
+            System.out.println("2. Alunos matriculados em uma turma");
             System.out.println("0. Sair (logout)");
             switch (ler("Opcao: ")) {
                 case "1" -> {
-                    if (professor.getDisciplinas().isEmpty()) {
-                        System.out.println("Voce nao leciona nenhuma disciplina.");
+                    if (professor.getTurmas().isEmpty()) {
+                        System.out.println("Voce nao leciona nenhuma turma.");
                     }
-                    for (Disciplina d : professor.getDisciplinas()) {
-                        System.out.printf("  %-7s %-35s %d matriculados%n",
-                                d.getCodigo(), d.getNome(), d.qtdMatriculados());
+                    for (Turma t : professor.getTurmas()) {
+                        System.out.printf("  %-10s %-33s %d matriculados%n",
+                                t.getIdentificacao(), t.getDisciplina().getNome(), t.qtdMatriculados());
                     }
                 }
                 case "2" -> {
-                    Disciplina d = pedirDisciplina();
-                    if (d == null) {
+                    Turma t = pedirTurma();
+                    if (t == null) {
                         break;
                     }
-                    List<Aluno> alunos = professor.listarAlunos(d);
-                    if (!professor.getDisciplinas().contains(d)) {
-                        System.out.println("Voce nao leciona essa disciplina.");
-                    } else if (alunos.isEmpty()) {
+                    if (!professor.getTurmas().contains(t)) {
+                        System.out.println("Voce nao leciona essa turma.");
+                        break;
+                    }
+                    List<Aluno> alunos = professor.listarAlunos(t);
+                    if (alunos.isEmpty()) {
                         System.out.println("Nenhum aluno matriculado.");
                     } else {
                         for (Aluno a : alunos) {
@@ -177,22 +194,26 @@ public class Main {
         while (true) {
             System.out.println();
             System.out.println("--- MENU DA SECRETARIA ---");
-            System.out.println("1. Listar disciplinas");
+            System.out.println("1. Listar turmas ofertadas");
             System.out.println("2. Cadastrar disciplina");
             System.out.println("3. Remover disciplina");
-            System.out.println("4. Listar/cadastrar professores");
-            System.out.println("5. Listar/cadastrar alunos");
-            System.out.println("6. Gerar curriculo do semestre");
-            System.out.println("7. Encerrar periodo de matriculas");
+            System.out.println("4. Cadastrar turma");
+            System.out.println("5. Remover turma");
+            System.out.println("6. Listar/cadastrar professores");
+            System.out.println("7. Listar/cadastrar alunos");
+            System.out.println("8. Gerar curriculo do semestre");
+            System.out.println("9. Encerrar periodo de matriculas");
             System.out.println("0. Sair (logout)");
             switch (ler("Opcao: ")) {
                 case "1" -> listarOfertadas();
                 case "2" -> cadastrarDisciplina();
                 case "3" -> removerDisciplina();
-                case "4" -> professoresMenu();
-                case "5" -> alunosMenu();
-                case "6" -> gerarCurriculo();
-                case "7" -> encerrarPeriodo();
+                case "4" -> cadastrarTurma();
+                case "5" -> removerTurma();
+                case "6" -> professoresMenu();
+                case "7" -> alunosMenu();
+                case "8" -> gerarCurriculo();
+                case "9" -> encerrarPeriodo();
                 case "0" -> {
                     return;
                 }
@@ -209,35 +230,62 @@ public class Main {
         }
         String nome = ler("Nome: ");
         int creditos = lerInteiro("Creditos: ");
-        Professor prof = sistema.buscarProfessor(ler("Login do professor responsavel: "));
+        sistema.cadastrarDisciplina(codigo, nome, creditos);
+        System.out.println("Disciplina cadastrada. Cadastre turmas dela para poder oferta-la.");
+    }
+
+    private static void removerDisciplina() {
+        Disciplina d = sistema.buscarDisciplina(ler("Codigo da disciplina: ").trim());
+        if (d == null) {
+            System.out.println("Disciplina nao encontrada.");
+            return;
+        }
+        if (sistema.removerDisciplina(d)) {
+            System.out.println("Disciplina e suas turmas removidas.");
+        } else {
+            System.out.println("Nao e possivel remover: ha alunos matriculados em alguma turma.");
+        }
+    }
+
+    private static void cadastrarTurma() {
+        Disciplina d = sistema.buscarDisciplina(ler("Codigo da disciplina: ").trim());
+        if (d == null) {
+            System.out.println("Disciplina nao encontrada.");
+            return;
+        }
+        String codigo = ler("Codigo da turma (ex.: T1): ").trim().toUpperCase();
+        Professor prof = sistema.buscarProfessor(ler("Login do professor da turma: ").trim());
         if (prof == null) {
             System.out.println("Professor nao encontrado.");
             return;
         }
-        sistema.cadastrarDisciplina(codigo, nome, creditos, prof);
-        if (sistema.getCurriculoAtual() != null
-                && simNao("Incluir no curriculo atual (s/n)? ")) {
-            sistema.getCurriculoAtual().getDisciplinas().add(sistema.buscarDisciplina(codigo));
-        }
-        System.out.println("Disciplina cadastrada.");
-    }
-
-    private static void removerDisciplina() {
-        Disciplina d = pedirDisciplina();
-        if (d == null) {
+        Turma t = sistema.cadastrarTurma(d, codigo, prof);
+        if (t == null) {
+            System.out.println("Ja existe turma " + codigo + " nessa disciplina.");
             return;
         }
-        if (sistema.removerDisciplina(d)) {
-            System.out.println("Disciplina removida.");
+        if (sistema.getCurriculoAtual() != null && simNao("Incluir no curriculo atual (s/n)? ")) {
+            sistema.getCurriculoAtual().getTurmas().add(t);
+        }
+        System.out.println("Turma " + t.getIdentificacao() + " cadastrada.");
+    }
+
+    private static void removerTurma() {
+        Turma t = pedirTurma();
+        if (t == null) {
+            return;
+        }
+        if (sistema.removerTurma(t)) {
+            System.out.println("Turma removida.");
         } else {
-            System.out.println("Nao e possivel remover: ha alunos matriculados.");
+            System.out.println("Nao e possivel remover: ha alunos matriculados na turma.");
         }
     }
 
     private static void professoresMenu() {
         for (Professor p : sistema.getProfessores()) {
-            System.out.printf("  %-10s %-25s %d disciplina(s)%n",
-                    p.getLogin(), p.getNome(), p.getDisciplinas().size());
+            System.out.printf("  %-10s %-25s %d turma(s)%n",
+                    p.getLogin(), p.getNome(), p.getTurmas().size());
         }
         if (simNao("Cadastrar novo professor (s/n)? ")) {
             String login = ler("Login: ").trim();
@@ -250,8 +298,9 @@ public class Main {
 
     private static void alunosMenu() {
         for (Aluno a : sistema.getAlunos()) {
-            System.out.printf("  %-10s %-25s matricula %s | %d disciplina(s)%n",
-                    a.getLogin(), a.getNome(), a.getMatriculaAcad(), a.getMatriculas().size());
+            System.out.printf("  %-10s %-25s matricula %s | %d matricula(s) | %d no historico%n",
+                    a.getLogin(), a.getNome(), a.getMatriculaAcad(),
+                    a.getMatriculas().size(), a.getHistorico().size());
         }
         if (simNao("Cadastrar novo aluno (s/n)? ")) {
             String login = ler("Login: ").trim();
@@ -267,9 +316,9 @@ public class Main {
         String semestre = ler("Semestre (ex.: 2027/1): ");
         LocalDate inicio = lerData("Inicio das matriculas (AAAA-MM-DD, vazio = hoje): ", LocalDate.now());
         LocalDate fim = lerData("Fim das matriculas (AAAA-MM-DD, vazio = hoje+30): ", LocalDate.now().plusDays(30));
-        sistema.gerarCurriculo(semestre, inicio, fim, sistema.getDisciplinas());
+        sistema.gerarCurriculo(semestre, inicio, fim, sistema.getTurmas());
         System.out.println("Curriculo " + semestre + " gerado com "
-                + sistema.getDisciplinas().size() + " disciplinas ofertadas.");
+                + sistema.getTurmas().size() + " turmas ofertadas.");
     }
 
     private static void encerrarPeriodo() {
@@ -278,15 +327,20 @@ public class Main {
             System.out.println("Nenhum curriculo gerado.");
             return;
         }
+        if (!c.periodoAberto()) {
+            System.out.println("O periodo de matriculas ja esta encerrado.");
+            return;
+        }
         if (!simNao("Encerrar o periodo de matriculas de " + c.getSemestre() + " (s/n)? ")) {
             return;
         }
         sistema.encerrarPeriodo();
-        System.out.println("Periodo encerrado. Resultado (minimo " + Disciplina.MIN_ALUNOS + " alunos):");
-        for (Disciplina d : c.getDisciplinas()) {
-            System.out.printf("  %-7s %-35s %2d matriculados -> %s%n", d.getCodigo(), d.getNome(),
-                    d.qtdMatriculados(), d.isAtiva() ? "ATIVA" : "CANCELADA");
+        System.out.println("Periodo encerrado. Resultado por turma (minimo " + Turma.MIN_ALUNOS + " alunos):");
+        for (Turma t : c.getTurmas()) {
+            System.out.printf("  %-10s %-33s %2d matriculados -> %s%n", t.getIdentificacao(),
+                    t.getDisciplina().getNome(), t.qtdMatriculados(), t.isAtiva() ? "ATIVA" : "CANCELADA");
         }
+        System.out.println("Historico lancado para os alunos das turmas ativas.");
     }
 
     // ---------------- Utilitarios de entrada ----------------
@@ -324,11 +378,32 @@ public class Main {
         return ler(prompt).trim().toLowerCase().startsWith("s");
     }
 
-    private static Disciplina pedirDisciplina() {
-        Disciplina d = sistema.buscarDisciplina(ler("Codigo da disciplina: ").trim());
+    /**
+     * Pede uma turma no formato DISCIPLINA/TURMA (ex.: ENG101/T1). Se o
+     * usuario informar so a disciplina e ela tiver uma unica turma, usa essa.
+     */
+    private static Turma pedirTurma() {
+        String entrada = ler("Turma (ex.: ENG101/T1): ").trim().toUpperCase();
+        String[] partes = entrada.split("/");
+        Disciplina d = sistema.buscarDisciplina(partes[0]);
         if (d == null) {
             System.out.println("Disciplina nao encontrada.");
+            return null;
         }
-        return d;
+        if (partes.length >= 2) {
+            Turma t = d.buscarTurma(partes[1]);
+            if (t == null) {
+                System.out.println("Turma nao encontrada nessa disciplina.");
+            }
+            return t;
+        }
+        if (d.getTurmas().size() == 1) {
+            return d.getTurmas().get(0);
+        }
+        System.out.println("Essa disciplina tem mais de uma turma. Informe no formato DISCIPLINA/TURMA:");
+        for (Turma t : d.getTurmas()) {
+            System.out.println("  " + t.getIdentificacao());
+        }
+        return null;
     }
 }

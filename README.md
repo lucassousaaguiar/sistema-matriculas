@@ -36,11 +36,11 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 - [x] Diagrama de classes ([`docs/diagrama-classes-v1.svg`](docs/diagrama-classes-v1.svg))
 - [x] Projeto Java com classes, atributos e stubs dos métodos (`src/sistemamatriculas/`) — compila com JDK 17+
 
-### 🔄 Atualização pós-S03 — Turmas e histórico (novos requisitos do PO)
+### ✅ Atualização pós-S03 — Turmas e histórico (novos requisitos do PO)
 - [x] Registro de mudança com todas as alterações necessárias → [`docs/mudanca-turmas.md`](docs/mudanca-turmas.md)
-- [ ] Validação das decisões propostas com o PO
-- [ ] Diagramas atualizados (casos de uso v2, classes v3)
-- [ ] Implementação (classe Turma, histórico do aluno, ajustes na CLI e na persistência)
+- [x] Validação das decisões propostas com o PO (código de turma "T1"/"T2", histórico lançado no encerramento, limites 4+2 por disciplina)
+- [x] Diagramas atualizados: casos de uso **v2** e classes **v3** (versões anteriores mantidas)
+- [x] Implementação: classes `Turma` e `ItemHistorico`, regras por turma, menus da CLI e persistência atualizados
 
 ### ✅ Lab01S03 — Protótipo (7 pontos)
 - [x] Correção dos diagramas: diagrama de classes evoluiu para a **v2** ([`docs/diagrama-classes-v2.svg`](docs/diagrama-classes-v2.svg)); a v1 foi mantida como histórico
@@ -56,9 +56,9 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 | Ator | Descrição |
 |---|---|
 | **Usuário** | Ator geral: qualquer pessoa com acesso ao sistema. Possui login e senha e precisa se autenticar para usar qualquer função. Os três atores abaixo são especializações dele. |
-| **Aluno** | Matricula-se em disciplinas do semestre (4 obrigatórias + 2 optativas) e cancela matrículas, dentro do período de matrículas. |
-| **Professor** | Consulta a lista de alunos matriculados em cada uma de suas disciplinas. |
-| **Secretaria** | Gera o currículo do semestre e mantém os cadastros de disciplinas, professores e alunos; encerra o período de matrículas. |
+| **Aluno** | Matricula-se em **turmas** (até 4 disciplinas obrigatórias + 2 optativas, uma turma por disciplina), cancela matrículas dentro do período e consulta seu **histórico**. |
+| **Professor** | Consulta a lista de alunos matriculados em cada uma de suas **turmas**. |
+| **Secretaria** | Gera o currículo do semestre e mantém os cadastros de disciplinas, **turmas**, professores e alunos; encerra o período de matrículas. |
 | **Sistema de Cobranças** | Sistema externo, notificado pelo sistema de matrículas quando um aluno se matricula, para que a cobrança do semestre seja feita. |
 
 ## Requisitos funcionais
@@ -66,18 +66,20 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF01 | O sistema deve autenticar qualquer usuário por login e senha antes de liberar suas funções. | Alta |
-| RF02 | A secretaria deve poder cadastrar, alterar, consultar e remover **disciplinas** (nome, créditos, professor responsável, tipo obrigatória/optativa por curso). | Alta |
+| RF02 | A secretaria deve poder cadastrar, alterar, consultar e remover **disciplinas** (código, nome, créditos) — o professor é definido em cada turma. | Alta |
 | RF03 | A secretaria deve poder cadastrar, alterar, consultar e remover **professores**. | Alta |
 | RF04 | A secretaria deve poder cadastrar, alterar, consultar e remover **alunos**. | Alta |
 | RF05 | A secretaria deve poder gerar o **currículo do semestre**: o conjunto de disciplinas ofertadas, com seu período de matrículas. | Alta |
-| RF06 | O aluno deve poder se **matricular** em disciplinas do semestre, escolhendo até 4 disciplinas obrigatórias e até 2 optativas. | Alta |
+| RF06 | O aluno deve poder se **matricular em turmas** do semestre, escolhendo até 4 disciplinas obrigatórias e até 2 optativas (uma turma por disciplina). | Alta |
 | RF07 | O aluno deve poder **cancelar** matrículas feitas anteriormente, dentro do período de matrículas. | Alta |
 | RF08 | O sistema deve impedir matrículas e cancelamentos **fora do período de matrículas**. | Alta |
-| RF09 | O sistema deve **encerrar as inscrições** de uma disciplina quando ela atingir 60 alunos matriculados. | Alta |
-| RF10 | Ao final do período de matrículas, o sistema deve **ativar** as disciplinas com pelo menos 3 alunos e **cancelar** as demais. | Alta |
+| RF09 | O sistema deve **encerrar as inscrições** de uma turma quando ela atingir 60 alunos matriculados. | Alta |
+| RF10 | Ao final do período de matrículas, o sistema deve **ativar** cada turma com pelo menos 3 alunos e **cancelar** as demais, de forma independente entre turmas. | Alta |
 | RF11 | O sistema deve **notificar o sistema de cobranças** quando um aluno se matricular no semestre, para que ele seja cobrado pelas disciplinas escolhidas. | Alta |
-| RF12 | O professor deve poder **consultar a lista de alunos matriculados** em cada disciplina que leciona. | Alta |
-| RF13 | O aluno deve poder consultar as disciplinas ofertadas no currículo do semestre e as suas matrículas atuais. | Média |
+| RF12 | O professor deve poder **consultar a lista de alunos matriculados** em cada turma que leciona. | Alta |
+| RF13 | O aluno deve poder consultar as turmas ofertadas no currículo do semestre (com professor e vagas) e as suas matrículas atuais. | Média |
+| RF14 | A secretaria deve poder **manter turmas**: criar turmas de uma disciplina (código + professor) e removê-las quando sem matriculados. | Alta |
+| RF15 | O aluno deve poder **consultar seu histórico**: disciplinas cursadas e a turma em que cursou cada uma, por semestre. | Alta |
 
 ## Requisitos não funcionais
 
@@ -97,29 +99,36 @@ Sistema de matrículas para uma universidade, desenvolvido em **Java**: a secret
 |---|---|
 | RN01 | Cada curso tem nome, número de créditos e é constituído por diversas disciplinas. |
 | RN02 | Um aluno pode se matricular em, no máximo, **4 disciplinas obrigatórias** e **2 optativas** por semestre. |
-| RN03 | Uma disciplina só ocorre no semestre seguinte se, ao final do período de matrículas, tiver **pelo menos 3 alunos** matriculados; caso contrário, é cancelada. |
-| RN04 | Uma disciplina aceita **no máximo 60 alunos**; ao atingir esse número, as inscrições dela são encerradas. |
+| RN03 | Uma **turma** só ocorre no semestre se, ao final do período de matrículas, tiver **pelo menos 3 alunos** matriculados; caso contrário, a turma é cancelada (sem afetar as demais turmas da disciplina). |
+| RN04 | Cada **turma** aceita **no máximo 60 alunos**; ao atingir esse número, as inscrições dela são encerradas. |
 | RN05 | Matrículas e cancelamentos só podem ocorrer **durante o período de matrículas** definido pela secretaria. |
 | RN06 | Toda matrícula gera notificação ao **sistema de cobranças**, para cobrança das disciplinas do semestre. |
+| RN07 | Toda turma pertence a exatamente **uma disciplina**; uma disciplina pode ter várias turmas, cada uma com professor, vagas e ativação **próprios** (independentes entre si). |
+| RN08 | Um aluno pode estar matriculado em **no máximo uma turma por disciplina** no semestre. |
+| RN09 | Ao encerrar o período de matrículas, as matrículas das turmas **ativas** são lançadas no **histórico** do aluno (disciplina + turma + semestre); matrículas de turmas canceladas são desfeitas e não entram no histórico. |
 
 ## Diagrama de casos de uso
 
-![Diagrama de casos de uso — Sistema de Matrículas](docs/diagrama-casos-de-uso-v1.svg)
+Versão atual (**v2**, atualizada com os requisitos de turmas — a [v1](docs/diagrama-casos-de-uso-v1.svg) foi mantida como histórico):
+
+![Diagrama de casos de uso — Sistema de Matrículas](docs/diagrama-casos-de-uso-v2.svg)
 
 O ator **Usuário** é o ator geral ("pai"): **Aluno**, **Professor** e **Secretaria** são especializações dele e herdam o caso de uso de login, diferindo nas funções que cada papel pode acessar. O **Sistema de Cobranças** é um ator externo: ele não usa o sistema, é notificado por ele (UC10, incluído por UC02 Realizar matrícula).
 
 | Caso de uso | Ator principal | Resumo |
 |---|---|---|
 | UC01 Efetuar login | Usuário | Autenticação por login e senha (RF01). |
-| UC02 Realizar matrícula | Aluno | Matrícula em obrigatórias/optativas no período, respeitando limites (RF06, RF08, RF09; RN02, RN04, RN05). Inclui UC10. |
+| UC02 Realizar matrícula | Aluno | Matrícula em uma **turma** no período, respeitando limites e uma turma por disciplina (RF06, RF08, RF09; RN02, RN04, RN05, RN08). Inclui UC10. |
 | UC03 Cancelar matrícula | Aluno | Cancela uma matrícula dentro do período (RF07, RF08). |
-| UC04 Consultar alunos da disciplina | Professor | Lista os alunos matriculados nas disciplinas que leciona (RF12). |
-| UC05 Gerar currículo do semestre | Secretaria | Define as disciplinas ofertadas e o período de matrículas (RF05). |
+| UC04 Consultar alunos da turma | Professor | Lista os alunos matriculados nas turmas que leciona (RF12). |
+| UC05 Gerar currículo do semestre | Secretaria | Define as turmas ofertadas e o período de matrículas (RF05). |
 | UC06 Manter disciplinas | Secretaria | CRUD de disciplinas (RF02). |
 | UC07 Manter professores | Secretaria | CRUD de professores (RF03). |
 | UC08 Manter alunos | Secretaria | CRUD de alunos (RF04). |
-| UC09 Encerrar período de matrículas | Secretaria | Fecha o período; o sistema ativa disciplinas com ≥ 3 alunos e cancela as demais (RF10, RN03). |
+| UC09 Encerrar período de matrículas | Secretaria | Fecha o período; cada turma com ≥ 3 alunos é ativada e as demais canceladas; o histórico dos alunos é lançado (RF10, RN03, RN09). |
 | UC10 Notificar sistema de cobranças | Sistema de Cobranças | Envio da notificação de cobrança a cada matrícula (RF11, RN06). |
+| UC11 Manter turmas | Secretaria | Criação/remoção de turmas de uma disciplina, com professor próprio (RF14, RN07). |
+| UC12 Consultar histórico | Aluno | Consulta das disciplinas cursadas e da turma correspondente, por semestre (RF15). |
 
 ## Histórias de usuário
 
@@ -154,9 +163,15 @@ O ator **Usuário** é o ator geral ("pai"): **Aluno**, **Professor** e **Secret
 
 ## Diagrama de classes
 
-Versão atual (**v2**, atualizada na Sprint 3 conforme a implementação — a [v1](docs/diagrama-classes-v1.svg) da Sprint 2 foi mantida no repositório como histórico):
+Versão atual (**v3**, atualizada com os requisitos de turmas e histórico — [v1](docs/diagrama-classes-v1.svg) e [v2](docs/diagrama-classes-v2.svg) mantidas como histórico):
 
-![Diagrama de classes — Sistema de Matrículas](docs/diagrama-classes-v2.svg)
+![Diagrama de classes — Sistema de Matrículas](docs/diagrama-classes-v3.svg)
+
+O que mudou da v2 para a v3 (novos requisitos do PO — detalhes em [`docs/mudanca-turmas.md`](docs/mudanca-turmas.md)):
+- Entra **`Turma`** entre `Disciplina` e as pessoas: cada turma pertence a 1 disciplina e tem professor, vagas (máx. 60) e ativação (mín. 3) **próprios** — as regras de lotação migraram de `Disciplina` para `Turma`.
+- `Professor` passa a lecionar **turmas**; `Matricula` passa a referenciar **turma** (a disciplina vem através dela).
+- Entra **`ItemHistorico`**: o `Aluno` mantém o histórico de disciplinas cursadas com a turma e o semestre, lançado no encerramento do período (RN09).
+- `Curriculo` passa a ofertar **turmas**; a fachada ganha `cadastrarTurma`/`removerTurma`.
 
 O que mudou da v1 para a v2 (correção dos diagramas, Lab01S03):
 - As operações administrativas saíram de `Secretaria` (que ficou apenas como papel de acesso) e foram para a fachada **`SistemaMatriculas`**, que ganhou os métodos de cadastro, geração de currículo e inicialização — na prática, todos os menus da CLI operam sobre a fachada.
@@ -178,21 +193,26 @@ Decisões de modelagem:
 sistema-matriculas/
 ├── dados/                           # criada na 1ª execução (CSVs + cobrancas.log)
 ├── docs/
-│   ├── diagrama-casos-de-uso-v1.svg
+│   ├── diagrama-casos-de-uso-v1.svg # versão da Sprint 1
+│   ├── diagrama-casos-de-uso-v2.svg # versão atual (turmas e histórico)
 │   ├── diagrama-classes-v1.svg      # versão da Sprint 2 (stubs)
-│   └── diagrama-classes-v2.svg      # versão atual (Sprint 3)
+│   ├── diagrama-classes-v2.svg      # versão da Sprint 3
+│   ├── diagrama-classes-v3.svg      # versão atual (turmas e histórico)
+│   └── mudanca-turmas.md            # registro de mudança dos novos requisitos
 ├── src/
 │   └── sistemamatriculas/
 │       ├── Main.java                # interface de linha de comando (menus por papel)
 │       ├── SistemaMatriculas.java   # fachada: login, matrículas, cadastros, currículo
 │       ├── Usuario.java             # abstrata (login + hash SHA-256 da senha)
-│       ├── Aluno.java
-│       ├── Professor.java
+│       ├── Aluno.java               # matrículas por turma + histórico
+│       ├── Professor.java           # leciona turmas
 │       ├── Secretaria.java
 │       ├── Curso.java
 │       ├── Disciplina.java
-│       ├── Curriculo.java
-│       ├── Matricula.java
+│       ├── Turma.java               # turma de uma disciplina (vagas e ativação próprias)
+│       ├── Curriculo.java           # turmas ofertadas + período de matrículas
+│       ├── Matricula.java           # aluno x turma
+│       ├── ItemHistorico.java       # disciplina cursada + turma + semestre
 │       ├── TipoMatricula.java       # enum OBRIGATORIA/OPTATIVA
 │       ├── SistemaCobrancas.java    # interface (sistema externo)
 │       ├── CobrancasArquivo.java    # implementação: registra em dados/cobrancas.log
@@ -226,9 +246,9 @@ Funcionalidades implementadas (todas usáveis pela CLI):
 | Papel | Funcionalidades |
 |---|---|
 | Todos | Login com senha (hash SHA-256) e menu conforme o papel (RF01, RNF04, RNF05) |
-| Aluno | Ver disciplinas ofertadas com vagas; matricular em obrigatórias/optativas respeitando os limites 4+2 (RN02), a lotação de 60 (RN04) e o período (RN05); cancelar matrícula; ver suas matrículas (RF06-RF09, RF13) |
-| Professor | Listar suas disciplinas e os alunos matriculados em cada uma (RF12) |
-| Secretaria | Manter disciplinas, professores e alunos (RF02-RF04); gerar o currículo do semestre com período de matrículas (RF05); encerrar o período — disciplinas com ≥ 3 alunos ficam ativas, as demais são canceladas e têm as matrículas desfeitas (RF10, RN03) |
+| Aluno | Ver turmas ofertadas com professor e vagas; matricular-se em turmas respeitando os limites 4+2 (RN02), uma turma por disciplina (RN08), a lotação de 60 por turma (RN04) e o período (RN05); cancelar matrícula; ver suas matrículas e o seu **histórico** (RF06-RF09, RF13, RF15) |
+| Professor | Listar suas turmas e os alunos matriculados em cada uma (RF12) |
+| Secretaria | Manter disciplinas, turmas, professores e alunos (RF02-RF04, RF14); gerar o currículo do semestre com período de matrículas (RF05); encerrar o período — cada turma com ≥ 3 alunos fica ativa, as demais são canceladas (independência entre turmas, RN07), e o histórico dos alunos é lançado (RF10, RN03, RN09) |
 | Sistema de cobranças | Notificado a cada matrícula efetivada, com registro em `dados/cobrancas.log` (RF11, RN06) |
 
 Persistência: todo o estado (usuários, cursos, disciplinas, currículo e matrículas) é gravado em CSV na pasta `dados/` a cada operação e recarregado na abertura (RNF03).

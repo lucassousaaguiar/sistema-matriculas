@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Currículo do semestre: conjunto de disciplinas ofertadas e o período de
+ * Currículo do semestre: conjunto de turmas ofertadas e o período de
  * matrículas definido pela secretaria (RF05, RN05).
  */
 public class Curriculo {
@@ -13,7 +13,7 @@ public class Curriculo {
     private String semestre; // ex.: "2026/2"
     private LocalDate inicioMatriculas;
     private LocalDate fimMatriculas;
-    private List<Disciplina> disciplinas = new ArrayList<>();
+    private List<Turma> turmas = new ArrayList<>();
 
     public Curriculo(String semestre, LocalDate inicioMatriculas, LocalDate fimMatriculas) {
         this.semestre = semestre;
@@ -44,7 +44,7 @@ public class Curriculo {
         return fimMatriculas;
     }
 
-    public List<Disciplina> getDisciplinas() {
-        return disciplinas;
+    public List<Turma> getTurmas() {
+        return turmas;
     }
 }

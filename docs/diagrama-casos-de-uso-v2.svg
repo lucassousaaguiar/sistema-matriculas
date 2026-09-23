@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="920" viewBox="0 0 1080 920" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="tri" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto">
+      <path d="M1,1 L14,7 L1,13 Z" fill="#ffffff" stroke="#000000" stroke-width="1.2"/>
+    </marker>
+    <marker id="open" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10" fill="none" stroke="#000000" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1080" height="920" fill="#ffffff"/>
+  <text x="540" y="908" text-anchor="middle" font-size="10.5" fill="#555555">Diagrama de Casos de Uso v2 — matrículas e consultas passam a ser por turma; novos UC11 (Manter turmas) e UC12 (Consultar histórico)</text>
+
+  <!-- ===== Fronteira do sistema ===== -->
+  <rect x="350" y="15" width="580" height="870" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+  <text x="640" y="42" text-anchor="middle" font-size="13" font-weight="bold">Sistema de Matrículas</text>
+
+  <!-- ===== Ator pai: Usuário ===== -->
+  <g stroke="#000000" stroke-width="1.6" fill="none">
+    <circle cx="120" cy="45" r="9" fill="#ffffff"/>
+    <line x1="120" y1="54" x2="120" y2="83"/>
+    <line x1="105" y1="64" x2="135" y2="64"/>
+    <line x1="120" y1="83" x2="107" y2="103"/>
+    <line x1="120" y1="83" x2="133" y2="103"/>
+  </g>
+  <text x="120" y="119" text-anchor="middle" font-size="11.5" font-weight="bold">Usuário</text>
+  <text x="120" y="131" text-anchor="middle" font-size="7.8" fill="#333333">possui login e senha</text>
+
+  <!-- ===== Generalização (tronco ortogonal, triângulo no pai) ===== -->
+  <g stroke="#000000" stroke-width="1.2" fill="none">
+    <line x1="120" y1="488" x2="120" y2="140" marker-end="url(#tri)"/>
+    <line x1="120" y1="203" x2="174" y2="203"/>
+    <line x1="120" y1="348" x2="174" y2="348"/>
+    <line x1="120" y1="488" x2="174" y2="488"/>
+  </g>
+
+  <!-- ===== Ator: Aluno ===== -->
+  <g stroke="#000000" stroke-width="1.5" fill="none">
+    <circle cx="190" cy="185" r="8" fill="#ffffff"/>
+    <line x1="190" y1="193" x2="190" y2="219"/>
+    <line x1="177" y1="202" x2="203" y2="202"/>
+    <line x1="190" y1="219" x2="179" y2="237"/>
+    <line x1="190" y1="219" x2="201" y2="237"/>
+  </g>
+  <text x="190" y="253" text-anchor="middle" font-size="10" font-weight="bold">Aluno</text>
+  <text x="190" y="265" text-anchor="middle" font-size="7.8" fill="#333333">matricula-se em turmas e</text>
+  <text x="190" y="275" text-anchor="middle" font-size="7.8" fill="#333333">consulta seu histórico</text>
+
+  <!-- ===== Ator: Professor ===== -->
+  <g stroke="#000000" stroke-width="1.5" fill="none">
+    <circle cx="190" cy="330" r="8" fill="#ffffff"/>
+    <line x1="190" y1="338" x2="190" y2="364"/>
+    <line x1="177" y1="347" x2="203" y2="347"/>
+    <line x1="190" y1="364" x2="179" y2="382"/>
+    <line x1="190" y1="364" x2="201" y2="382"/>
+  </g>
+  <text x="190" y="398" text-anchor="middle" font-size="10" font-weight="bold">Professor</text>
+  <text x="190" y="410" text-anchor="middle" font-size="7.8" fill="#333333">consulta os alunos de</text>
+  <text x="190" y="420" text-anchor="middle" font-size="7.8" fill="#333333">suas turmas</text>
+
+  <!-- ===== Ator: Secretaria ===== -->
+  <g stroke="#000000" stroke-width="1.5" fill="none">
+    <circle cx="190" cy="470" r="8" fill="#ffffff"/>
+    <line x1="190" y1="478" x2="190" y2="504"/>
+    <line x1="177" y1="487" x2="203" y2="487"/>
+    <line x1="190" y1="504" x2="179" y2="522"/>
+    <line x1="190" y1="504" x2="201" y2="522"/>
+  </g>
+  <text x="190" y="538" text-anchor="middle" font-size="10" font-weight="bold">Secretaria</text>
+  <text x="190" y="550" text-anchor="middle" font-size="7.8" fill="#333333">mantém disciplinas, turmas,</text>
+  <text x="190" y="560" text-anchor="middle" font-size="7.8" fill="#333333">professores, alunos e o currículo</text>
+
+  <!-- ===== Ator externo: Sistema de Cobranças ===== -->
+  <g stroke="#000000" stroke-width="1.5" fill="none">
+    <circle cx="1000" cy="122" r="8" fill="#ffffff"/>
+    <line x1="1000" y1="130" x2="1000" y2="156"/>
+    <line x1="987" y1="139" x2="1013" y2="139"/>
+    <line x1="1000" y1="156" x2="989" y2="174"/>
+    <line x1="1000" y1="156" x2="1011" y2="174"/>
+  </g>
+  <text x="1000" y="190" text-anchor="middle" font-size="9" font-style="italic">«sistema externo»</text>
+  <text x="1000" y="204" text-anchor="middle" font-size="10" font-weight="bold">Sistema de</text>
+  <text x="1000" y="216" text-anchor="middle" font-size="10" font-weight="bold">Cobranças</text>
+
+  <!-- ===== Casos de uso ===== -->
+  <g fill="#ffffff" stroke="#000000" stroke-width="1.3">
+    <ellipse cx="505" cy="70" rx="105" ry="27"/>
+    <ellipse cx="505" cy="150" rx="105" ry="27"/>
+    <ellipse cx="505" cy="225" rx="105" ry="27"/>
+    <ellipse cx="505" cy="300" rx="105" ry="27"/>
+    <ellipse cx="505" cy="375" rx="105" ry="30"/>
+    <ellipse cx="505" cy="455" rx="105" ry="30"/>
+    <ellipse cx="505" cy="530" rx="105" ry="27"/>
+    <ellipse cx="505" cy="605" rx="105" ry="27"/>
+    <ellipse cx="505" cy="680" rx="105" ry="27"/>
+    <ellipse cx="505" cy="755" rx="105" ry="27"/>
+    <ellipse cx="505" cy="830" rx="105" ry="30"/>
+    <ellipse cx="800" cy="150" rx="100" ry="30"/>
+  </g>
+  <text x="505" y="66" text-anchor="middle" font-size="10" font-weight="bold">UC01</text>
+  <text x="505" y="80" text-anchor="middle" font-size="10">Efetuar login</text>
+  <text x="505" y="146" text-anchor="middle" font-size="10" font-weight="bold">UC02</text>
+  <text x="505" y="160" text-anchor="middle" font-size="10">Realizar matrícula</text>
+  <text x="505" y="221" text-anchor="middle" font-size="10" font-weight="bold">UC03</text>
+  <text x="505" y="235" text-anchor="middle" font-size="10">Cancelar matrícula</text>
+  <text x="505" y="296" text-anchor="middle" font-size="10" font-weight="bold">UC12</text>
+  <text x="505" y="310" text-anchor="middle" font-size="10">Consultar histórico</text>
+  <text x="505" y="365" text-anchor="middle" font-size="10" font-weight="bold">UC04</text>
+  <text x="505" y="379" text-anchor="middle" font-size="10">Consultar alunos</text>
+  <text x="505" y="392" text-anchor="middle" font-size="10">da turma</text>
+  <text x="505" y="445" text-anchor="middle" font-size="10" font-weight="bold">UC05</text>
+  <text x="505" y="459" text-anchor="middle" font-size="10">Gerar currículo</text>
+  <text x="505" y="472" text-anchor="middle" font-size="10">do semestre</text>
+  <text x="505" y="526" text-anchor="middle" font-size="10" font-weight="bold">UC06</text>
+  <text x="505" y="540" text-anchor="middle" font-size="10">Manter disciplinas</text>
+  <text x="505" y="601" text-anchor="middle" font-size="10" font-weight="bold">UC11</text>
+  <text x="505" y="615" text-anchor="middle" font-size="10">Manter turmas</text>
+  <text x="505" y="676" text-anchor="middle" font-size="10" font-weight="bold">UC07</text>
+  <text x="505" y="690" text-anchor="middle" font-size="10">Manter professores</text>
+  <text x="505" y="751" text-anchor="middle" font-size="10" font-weight="bold">UC08</text>
+  <text x="505" y="765" text-anchor="middle" font-size="10">Manter alunos</text>
+  <text x="505" y="820" text-anchor="middle" font-size="10" font-weight="bold">UC09</text>
+  <text x="505" y="834" text-anchor="middle" font-size="10">Encerrar período</text>
+  <text x="505" y="847" text-anchor="middle" font-size="10">de matrículas</text>
+  <text x="800" y="140" text-anchor="middle" font-size="10" font-weight="bold">UC10</text>
+  <text x="800" y="154" text-anchor="middle" font-size="10">Notificar sistema</text>
+  <text x="800" y="167" text-anchor="middle" font-size="10">de cobranças</text>
+
+  <!-- ===== Associações ===== -->
+  <g fill="none" stroke="#000000" stroke-width="1.1">
+    <line x1="140" y1="60" x2="400" y2="68"/>
+    <line x1="206" y1="205" x2="400" y2="152"/>
+    <line x1="206" y1="215" x2="400" y2="222"/>
+    <line x1="206" y1="225" x2="400" y2="297"/>
+    <line x1="206" y1="350" x2="400" y2="373"/>
+    <line x1="206" y1="490" x2="400" y2="452"/>
+    <line x1="206" y1="497" x2="400" y2="527"/>
+    <line x1="206" y1="503" x2="400" y2="602"/>
+    <line x1="206" y1="509" x2="400" y2="677"/>
+    <line x1="206" y1="515" x2="400" y2="752"/>
+    <line x1="206" y1="521" x2="400" y2="825"/>
+    <line x1="900" y1="146" x2="988" y2="135"/>
+  </g>
+
+  <!-- ===== include ===== -->
+  <line x1="610" y1="150" x2="698" y2="150" fill="none" stroke="#000000" stroke-width="1.1" stroke-dasharray="6 4" marker-end="url(#open)"/>
+  <text x="654" y="141" text-anchor="middle" font-size="9.5" font-style="italic">«include»</text>
+</svg>
